@@ -431,6 +431,13 @@ function resetSurvey() {
   updateProgress();
 }
 
+function formatBirthdate(value) {
+  const digits = value.replace(/\D/g, "").slice(0, 8);
+  if (digits.length <= 4) return digits;
+  if (digits.length <= 6) return `${digits.slice(0, 4)}-${digits.slice(4)}`;
+  return `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6)}`;
+}
+
 function bindEvents() {
   document.querySelectorAll("[data-view]").forEach((button) => {
     button.addEventListener("click", () => switchView(button.dataset.view));
@@ -443,6 +450,9 @@ function bindEvents() {
     if (!isProfileValid()) return;
     showQuestionStep();
     window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+  $('[name="birthdate"]').addEventListener("input", (event) => {
+    event.target.value = formatBirthdate(event.target.value);
   });
   $("#questionsList").addEventListener("change", updateProgress);
   $("#submitSurveyBtn").addEventListener("click", saveCurrentResponse);
