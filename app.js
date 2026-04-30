@@ -114,14 +114,55 @@ const descriptions = {
 const scaleLabels = ["전혀 아니다", "아니다", "보통이다", "그렇다", "매우 그렇다"];
 const storageKey = "exercise-survey-responses-v1";
 let selectedResponseId = null;
+let adminResponsesCache = [];
 const $ = (selector) => document.querySelector(selector);
 
-function getResponses() {
+function getLocalResponses() {
   return JSON.parse(localStorage.getItem(storageKey) || "[]");
 }
 
-function saveResponses(responses) {
+function saveLocalResponses(responses) {
   localStorage.setItem(storageKey, JSON.stringify(responses));
+}
+
+async function apiRequest(url, options = {}) {
+  const response = await fetch(url, {
+    credentials: "same-origin",
+    headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+    ...options
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const error = new Error(data.error || "요청을 처리하지 못했습니다.");
+    error.status = response.status;
+    throw error;
+  }
+  return data;
+}
+
+async function saveResponse(response) {
+  try {
+    const data = await apiRequest("/api/responses", {
+      method: "POST",
+      body: JSON.stringify(response)
+    });
+    return data.response ? normalizeResponse(data.response) : response;
+  } catch (error) {
+    const responses = getLocalResponses();
+    responses.push(response);
+    saveLocalResponses(responses);
+    return response;
+  }
+}
+
+function normalizeResponse(response) {
+  return {
+    id: response.id,
+    createdAt: response.createdAt || response.created_at,
+    profile: response.profile,
+    answers: response.answers,
+    scores: response.scores
+  };
 }
 
 function getBand(score) {
@@ -233,7 +274,7 @@ function isProfileValid() {
   return true;
 }
 
-function saveCurrentResponse() {
+async function saveCurrentResponse() {
   const missing = questions.find((question) => !new FormData($("#surveyForm")).get(question.id));
   if (missing) {
     alert(`${missing.id} 문항에 응답해주세요.`);
@@ -248,11 +289,8 @@ function saveCurrentResponse() {
     answers,
     scores: calculateScores(answers)
   };
-  const responses = getResponses();
-  responses.push(response);
-  saveResponses(responses);
-  showResult(response);
-  renderAdmin();
+  const saved = await saveResponse(response);
+  showResult(saved);
 }
 
 function makeScoreCards(scores) {
@@ -273,8 +311,23 @@ function showResult(response) {
   switchView("result");
 }
 
-function renderAdmin() {
-  const responses = getResponses().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+async function renderAdmin() {
+  try {
+    const data = await apiRequest("/api/admin/responses");
+    adminResponsesCache = data.responses.map(normalizeResponse);
+  } catch (error) {
+    if (error.status === 401) {
+      renderAdminLogin();
+      return;
+    }
+    $("#responseList").innerHTML = `<div class="empty-state">관리자 데이터를 불러오지 못했습니다.<br>${error.message}</div>`;
+    $("#adminDetail").innerHTML = `<div class="empty-state">Vercel 환경변수와 Supabase 연결을 확인해주세요.</div>`;
+    $("#statsGrid").innerHTML = "";
+    $("#totalCount").textContent = "0명";
+    return;
+  }
+
+  const responses = adminResponsesCache.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   const query = $("#searchInput").value.trim().toLowerCase();
   const filtered = responses.filter((response) => response.profile.name.toLowerCase().includes(query));
   const list = $("#responseList");
@@ -302,6 +355,38 @@ function renderAdmin() {
     if (selected) renderDetail(selected);
   }
   renderStats(responses);
+}
+
+function renderAdminLogin() {
+  selectedResponseId = null;
+  adminResponsesCache = [];
+  $("#totalCount").textContent = "로그인 필요";
+  $("#responseList").innerHTML = `<div class="empty-state">관리자 로그인 후 응답 목록이 표시됩니다.</div>`;
+  $("#statsGrid").innerHTML = `<div class="empty-state">로그인 후 전체 통계를 확인할 수 있습니다.</div>`;
+  $("#adminDetail").innerHTML = `
+    <form id="adminLoginForm" class="login-card">
+      <p class="kicker">Admin Login</p>
+      <h2>관리자 비밀번호</h2>
+      <p class="description">관리자 응답 데이터는 로그인한 사용자에게만 표시됩니다.</p>
+      <input id="adminPassword" type="password" autocomplete="current-password" placeholder="비밀번호" required>
+      <button class="primary full" type="submit">로그인</button>
+      <p id="loginMessage" class="description"></p>
+    </form>
+  `;
+  $("#adminLoginForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const message = $("#loginMessage");
+    message.textContent = "";
+    try {
+      await apiRequest("/api/admin/login", {
+        method: "POST",
+        body: JSON.stringify({ password: $("#adminPassword").value })
+      });
+      await renderAdmin();
+    } catch (error) {
+      message.textContent = error.message;
+    }
+  });
 }
 
 function renderDetail(response) {
@@ -360,13 +445,12 @@ function renderStats(responses) {
   }).join("");
 }
 
-function deleteResponse(id) {
+async function deleteResponse(id) {
   if (!confirm("선택한 응답을 삭제할까요?")) return;
-  const responses = getResponses().filter((response) => response.id !== id);
-  saveResponses(responses);
+  await apiRequest(`/api/admin/responses?id=${encodeURIComponent(id)}`, { method: "DELETE" });
   selectedResponseId = null;
   $("#adminDetail").innerHTML = `<div class="empty-state">저장된 응답을 선택하면 상세 결과가 표시됩니다.</div>`;
-  renderAdmin();
+  await renderAdmin();
 }
 
 function formatDate(value) {
@@ -379,8 +463,18 @@ function formatDate(value) {
   }).format(new Date(value));
 }
 
-function exportExcel() {
-  const responses = getResponses();
+async function exportExcel() {
+  let responses = adminResponsesCache;
+  if (!responses.length) {
+    try {
+      const data = await apiRequest("/api/admin/responses");
+      responses = data.responses.map(normalizeResponse);
+      adminResponsesCache = responses;
+    } catch (error) {
+      alert(error.message);
+      return;
+    }
+  }
   if (!responses.length) {
     alert("내보낼 응답이 없습니다.");
     return;
@@ -468,12 +562,12 @@ function bindEvents() {
   $("#goAdminBtn").addEventListener("click", () => switchView("admin"));
   $("#searchInput").addEventListener("input", renderAdmin);
   $("#exportBtn").addEventListener("click", exportExcel);
-  $("#clearDataBtn").addEventListener("click", () => {
+  $("#clearDataBtn").addEventListener("click", async () => {
     if (!confirm("저장된 모든 응답을 삭제할까요?")) return;
-    saveResponses([]);
+    await apiRequest("/api/admin/responses?all=1", { method: "DELETE" });
     selectedResponseId = null;
     $("#adminDetail").innerHTML = `<div class="empty-state">저장된 응답을 선택하면 상세 결과가 표시됩니다.</div>`;
-    renderAdmin();
+    await renderAdmin();
   });
 }
 

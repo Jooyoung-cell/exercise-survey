@@ -276,7 +276,7 @@ label {
   font-weight: 900;
 }
 
-input, select {
+input:not([type="radio"]), select {
   display: block;
   appearance: none;
   -webkit-appearance: none;
@@ -563,6 +563,18 @@ select {
 }
 
 .stats-panel { margin-top: 20px; }
+
+.login-card {
+  display: grid;
+  gap: 16px;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.login-card h2 {
+  font-size: clamp(28px, 5vw, 40px);
+  font-weight: 950;
+}
 
 @media (max-width: 860px) {
   .app-header {
