@@ -660,6 +660,10 @@ select {
     margin-top: -18px;
   }
 
+  .result-copy {
+    flex: 0 1 auto;
+  }
+
   .result-hero {
     gap: 18px;
     padding: 24px;
