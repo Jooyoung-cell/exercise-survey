@@ -327,6 +327,7 @@ async function renderAdmin() {
     return;
   }
 
+  setAdminActionsVisible(true);
   const responses = adminResponsesCache.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   const query = $("#searchInput").value.trim().toLowerCase();
   const filtered = responses.filter((response) => response.profile.name.toLowerCase().includes(query));
@@ -358,6 +359,7 @@ async function renderAdmin() {
 }
 
 function renderAdminLogin() {
+  setAdminActionsVisible(false);
   selectedResponseId = null;
   adminResponsesCache = [];
   $("#totalCount").textContent = "로그인 필요";
@@ -387,6 +389,11 @@ function renderAdminLogin() {
       message.textContent = error.message;
     }
   });
+}
+
+function setAdminActionsVisible(isVisible) {
+  const actions = document.querySelector(".admin-actions");
+  if (actions) actions.hidden = !isVisible;
 }
 
 function renderDetail(response) {
