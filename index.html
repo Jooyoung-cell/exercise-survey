@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>운동성향 설문</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Exercise Profile Survey</p>
+        <h1>운동성향 설문</h1>
+      </div>
+      <nav class="tabs" aria-label="화면 전환">
+        <button class="tab is-active" data-view="survey" type="button">설문</button>
+        <button class="tab" data-view="admin" type="button">관리자</button>
+      </nav>
+    </header>
+
+    <main>
+      <section id="surveyView" class="view is-visible">
+        <section class="panel intro-panel">
+          <div>
+            <h2>기본정보</h2>
+            <p>모든 기본정보와 32개 문항 응답을 완료하면 결과가 저장됩니다.</p>
+          </div>
+          <div class="progress-wrap" aria-label="응답 진행률">
+            <div class="progress-meta">
+              <span>진행률</span>
+              <strong id="progressText">0%</strong>
+            </div>
+            <div class="progress-track">
+              <div id="progressBar" class="progress-bar"></div>
+            </div>
+          </div>
+        </section>
+
+        <form id="surveyForm" class="survey-form">
+          <section class="info-grid" aria-label="기본정보 입력">
+            <label>
+              <span>이름</span>
+              <input name="name" autocomplete="name" required>
+            </label>
+            <label>
+              <span>생년월일</span>
+              <input name="birthdate" type="date" required>
+            </label>
+            <label>
+              <span>성별</span>
+              <select name="gender" required>
+                <option value="">선택</option>
+                <option>남</option>
+                <option>여</option>
+              </select>
+            </label>
+            <label>
+              <span>신장(cm)</span>
+              <input name="height" type="number" min="80" max="250" step="0.1" required>
+            </label>
+            <label>
+              <span>체중(kg)</span>
+              <input name="weight" type="number" min="20" max="300" step="0.1" required>
+            </label>
+          </section>
+
+          <section id="questions" class="questions" aria-label="설문 문항"></section>
+
+          <div class="actions">
+            <button class="secondary" id="resetBtn" type="button">초기화</button>
+            <button class="primary" type="submit">결과 저장</button>
+          </div>
+        </form>
+
+      </section>
+
+      <section id="resultView" class="view result-view">
+        <section class="panel result-hero">
+          <div>
+            <p class="eyebrow">Survey Complete</p>
+            <h2>응답 결과</h2>
+            <p id="resultProfile" class="meta-line"></p>
+          </div>
+          <div class="result-actions">
+            <button class="secondary" id="newSurveyBtn" type="button">새 설문 작성</button>
+            <button class="primary" id="goAdminBtn" type="button">관리자에서 보기</button>
+          </div>
+        </section>
+        <section class="panel result-wide-panel">
+          <div id="finalResultSummary" class="result-summary"></div>
+        </section>
+      </section>
+
+      <section id="adminView" class="view">
+        <section class="panel admin-head">
+          <div>
+            <p class="eyebrow">Admin</p>
+            <h2>응답 관리</h2>
+            <p>저장된 개인 응답을 확인하고, 통계와 엑셀 파일을 만들 수 있습니다.</p>
+          </div>
+          <div class="admin-actions">
+            <button class="secondary" id="clearDataBtn" type="button">전체 삭제</button>
+            <button class="primary" id="exportBtn" type="button">엑셀 추출</button>
+          </div>
+        </section>
+
+        <section class="admin-grid">
+          <aside class="panel response-list">
+            <div class="list-head">
+              <h3>응답자</h3>
+              <input id="searchInput" placeholder="이름 검색" aria-label="이름 검색">
+            </div>
+            <div id="responseList" class="response-items"></div>
+          </aside>
+
+          <section class="panel detail-panel">
+            <div id="adminDetail" class="empty-state">저장된 응답을 선택하면 상세 결과가 표시됩니다.</div>
+          </section>
+        </section>
+
+        <section class="panel stats-panel">
+          <div class="section-title">
+            <div>
+              <p class="eyebrow">Statistics</p>
+              <h2>전체 통계</h2>
+            </div>
+            <strong id="totalCount">0명</strong>
+          </div>
+          <div id="statsGrid" class="stats-grid"></div>
+        </section>
+      </section>
+    </main>
+
+    <template id="questionTemplate">
+      <article class="question-card">
+        <div class="question-copy">
+          <span class="question-id"></span>
+          <h3></h3>
+        </div>
+        <div class="scale" role="radiogroup"></div>
+      </article>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
