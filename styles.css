@@ -648,10 +648,45 @@ select {
   .result-actions {
     display: grid;
     grid-template-columns: 1fr;
+    gap: 12px;
   }
 
   .result-actions .primary,
   .result-actions .secondary {
     width: 100%;
+  }
+
+  .result-view {
+    margin-top: -18px;
+  }
+
+  .result-hero {
+    gap: 18px;
+    padding: 24px;
+  }
+
+  .result-hero h1 {
+    font-size: clamp(38px, 10vw, 56px);
+    line-height: 1.08;
+  }
+
+  .result-hero .lead {
+    margin-top: 14px;
+    padding: 10px 14px;
+    border-radius: 22px;
+    font-size: 20px;
+  }
+
+  .result-actions {
+    padding: 0;
+  }
+
+  .result-actions .primary,
+  .result-actions .secondary {
+    min-height: 58px;
+  }
+
+  .result-view .score-grid {
+    margin-top: 18px;
   }
 }
