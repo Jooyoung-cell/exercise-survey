@@ -323,31 +323,53 @@ input, select {
   transition: width 0.25s ease;
 }
 
+.questions-list {
+  display: grid;
+  gap: 22px;
+}
+
 .question-card h2 {
-  margin-bottom: 46px;
-  font-size: clamp(32px, 6vw, 48px);
+  font-size: clamp(24px, 4.8vw, 36px);
   line-height: 1.28;
+  font-weight: 950;
+}
+
+.question-heading {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 30px;
+}
+
+.question-heading span {
+  display: inline-grid;
+  place-items: center;
+  width: 50px;
+  height: 30px;
+  border-radius: 999px;
+  background: #e8f0ff;
+  color: var(--blue);
+  font-size: 14px;
   font-weight: 950;
 }
 
 .scale-list {
   display: grid;
-  gap: 26px;
+  gap: 18px;
 }
 
 .scale-option {
   display: flex;
   align-items: center;
-  gap: 22px;
+  gap: 16px;
   color: #222;
-  font-size: clamp(24px, 5vw, 32px);
+  font-size: clamp(20px, 4vw, 26px);
   font-weight: 800;
 }
 
 .scale-option input {
-  width: 38px;
-  height: 38px;
-  min-height: 38px;
+  width: 30px;
+  height: 30px;
+  min-height: 30px;
   accent-color: var(--blue);
 }
 
@@ -355,6 +377,14 @@ input, select {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 24px;
+}
+
+.submit-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 12;
+  padding: 18px 0 0;
+  background: linear-gradient(180deg, rgba(244, 248, 252, 0), var(--bg) 35%);
 }
 
 .result-hero, .admin-head {

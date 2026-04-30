@@ -114,8 +114,6 @@ const descriptions = {
 const scaleLabels = ["전혀 아니다", "아니다", "보통이다", "그렇다", "매우 그렇다"];
 const storageKey = "exercise-survey-responses-v1";
 let selectedResponseId = null;
-let currentQuestionIndex = 0;
-
 const $ = (selector) => document.querySelector(selector);
 
 function getResponses() {
@@ -172,32 +170,44 @@ function showProfileStep() {
 function showQuestionStep() {
   $("#profileStep").hidden = true;
   $("#questionStep").hidden = false;
-  renderCurrentQuestion();
+  renderQuestionsList();
+  updateProgress();
 }
 
-function renderCurrentQuestion() {
-  const question = questions[currentQuestionIndex];
-  const savedValue = new FormData($("#surveyForm")).get(question.id);
+function renderQuestionsList() {
   const answeredCount = questions.filter((item) => new FormData($("#surveyForm")).get(item.id)).length;
-  const percent = Math.round((answeredCount / questions.length) * 100);
-
-  $("#questionCount").textContent = `질문 ${currentQuestionIndex + 1} / ${questions.length}`;
-  $("#questionText").textContent = question.text;
-  $("#progressText").textContent = `${percent}%`;
-  $("#progressBar").style.width = `${percent}%`;
-  $("#prevBtn").disabled = currentQuestionIndex === 0;
-  $("#nextBtn").textContent = currentQuestionIndex === questions.length - 1 ? "결과 보기" : "다음";
-
-  $("#scaleOptions").innerHTML = scaleLabels.map((label, index) => {
-    const value = index + 1;
-    const checked = String(value) === savedValue ? "checked" : "";
+  $("#questionCount").textContent = `응답 완료 ${answeredCount} / ${questions.length}`;
+  $("#questionsList").innerHTML = questions.map((question, questionIndex) => {
+    const savedValue = new FormData($("#surveyForm")).get(question.id);
     return `
-      <label class="scale-option">
-        <input type="radio" name="${question.id}" value="${value}" ${checked} required>
-        <span>${label}</span>
-      </label>
+      <article class="survey-card question-card">
+        <div class="question-heading">
+          <span>${question.id}</span>
+          <h2>${question.text}</h2>
+        </div>
+        <div class="scale-list" role="radiogroup" aria-label="${question.text}">
+          ${scaleLabels.map((label, index) => {
+            const value = index + 1;
+            const checked = String(value) === savedValue ? "checked" : "";
+            return `
+              <label class="scale-option">
+                <input type="radio" name="${question.id}" value="${value}" ${checked} required>
+                <span>${label}</span>
+              </label>
+            `;
+          }).join("")}
+        </div>
+      </article>
     `;
   }).join("");
+}
+
+function updateProgress() {
+  const answeredCount = questions.filter((item) => new FormData($("#surveyForm")).get(item.id)).length;
+  const percent = Math.round((answeredCount / questions.length) * 100);
+  $("#questionCount").textContent = `응답 완료 ${answeredCount} / ${questions.length}`;
+  $("#progressText").textContent = `${percent}%`;
+  $("#progressBar").style.width = `${percent}%`;
 }
 
 function collectFormData(form) {
@@ -223,30 +233,13 @@ function isProfileValid() {
   return true;
 }
 
-function goNextQuestion() {
-  const question = questions[currentQuestionIndex];
-  const selected = new FormData($("#surveyForm")).get(question.id);
-  if (!selected) {
-    alert("응답을 선택해주세요.");
-    return;
-  }
-  if (currentQuestionIndex < questions.length - 1) {
-    currentQuestionIndex += 1;
-    renderCurrentQuestion();
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    return;
-  }
-  saveCurrentResponse();
-}
-
-function goPrevQuestion() {
-  if (currentQuestionIndex === 0) return;
-  currentQuestionIndex -= 1;
-  renderCurrentQuestion();
-  window.scrollTo({ top: 0, behavior: "smooth" });
-}
-
 function saveCurrentResponse() {
+  const missing = questions.find((question) => !new FormData($("#surveyForm")).get(question.id));
+  if (missing) {
+    alert(`${missing.id} 문항에 응답해주세요.`);
+    document.querySelector(`[name="${missing.id}"]`).closest(".question-card").scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
   const { profile, answers } = collectFormData($("#surveyForm"));
   const response = {
     id: makeId(),
@@ -434,8 +427,8 @@ function escapeHtml(value) {
 
 function resetSurvey() {
   $("#surveyForm").reset();
-  currentQuestionIndex = 0;
   showProfileStep();
+  updateProgress();
 }
 
 function bindEvents() {
@@ -448,13 +441,15 @@ function bindEvents() {
   });
   $("#profileNextBtn").addEventListener("click", () => {
     if (!isProfileValid()) return;
-    currentQuestionIndex = 0;
     showQuestionStep();
     window.scrollTo({ top: 0, behavior: "smooth" });
   });
-  $("#scaleOptions").addEventListener("change", renderCurrentQuestion);
-  $("#nextBtn").addEventListener("click", goNextQuestion);
-  $("#prevBtn").addEventListener("click", goPrevQuestion);
+  $("#questionsList").addEventListener("change", updateProgress);
+  $("#submitSurveyBtn").addEventListener("click", saveCurrentResponse);
+  $("#backToProfileBtn").addEventListener("click", () => {
+    showProfileStep();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
   $("#surveyForm").addEventListener("submit", (event) => event.preventDefault());
   $("#newSurveyBtn").addEventListener("click", () => {
     resetSurvey();

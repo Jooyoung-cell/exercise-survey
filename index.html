@@ -106,7 +106,7 @@
             <div class="survey-title">
               <div>
                 <h1>운동 성향 설문조사</h1>
-                <p id="questionCount">질문 1 / 32</p>
+                <p id="questionCount">32개 문항에 모두 응답해주세요</p>
               </div>
             </div>
             <div class="progress-area">
@@ -116,13 +116,10 @@
               </div>
               <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
             </div>
-            <article class="survey-card question-card">
-              <h2 id="questionText"></h2>
-              <div id="scaleOptions" class="scale-list" role="radiogroup" aria-label="응답 선택"></div>
-            </article>
-            <div class="nav-actions">
-              <button class="secondary" id="prevBtn" type="button">이전</button>
-              <button class="primary" id="nextBtn" type="button">다음</button>
+            <div id="questionsList" class="questions-list"></div>
+            <div class="nav-actions submit-actions">
+              <button class="secondary" id="backToProfileBtn" type="button">이전</button>
+              <button class="primary" id="submitSurveyBtn" type="button">결과 보기</button>
             </div>
           </section>
         </form>
