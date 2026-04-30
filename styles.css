@@ -616,6 +616,26 @@ select {
     padding-bottom: 76px;
   }
 
+  .progress-area {
+    position: sticky;
+    top: 78px;
+    z-index: 15;
+    margin: 26px -16px 28px;
+    padding: 14px 16px 16px;
+    background: rgba(244, 248, 252, 0.96);
+    border-bottom: 1px solid var(--line);
+    backdrop-filter: blur(14px);
+  }
+
+  .progress-meta {
+    font-size: 19px;
+  }
+
+  .progress-track {
+    height: 12px;
+    margin-top: 8px;
+  }
+
   .result-hero, .admin-head {
     align-items: stretch;
     flex-direction: column;
