@@ -306,7 +306,7 @@ function makeScoreCards(scores) {
 }
 
 function showResult(response) {
-  $("#resultProfile").textContent = `${response.profile.name} · ${response.profile.gender} · ${response.profile.birthdate} · ${response.profile.height}cm / ${response.profile.weight}kg`;
+  $("#resultProfile").textContent = `${response.profile.name} | ${response.profile.gender} | ${response.profile.birthdate} | ${response.profile.height}cm | ${response.profile.weight}kg`;
   $("#finalResultSummary").innerHTML = makeScoreCards(response.scores);
   switchView("result");
 }
