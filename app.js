@@ -114,6 +114,7 @@ const descriptions = {
 const scaleLabels = ["전혀 아니다", "아니다", "보통이다", "그렇다", "매우 그렇다"];
 const storageKey = "exercise-survey-responses-v1";
 let selectedResponseId = null;
+let currentQuestionIndex = 0;
 
 const $ = (selector) => document.querySelector(selector);
 
@@ -154,35 +155,49 @@ function makeId() {
   return `response-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
-function renderQuestions() {
-  const container = $("#questions");
-  const template = $("#questionTemplate");
-  questions.forEach((question) => {
-    const node = template.content.cloneNode(true);
-    node.querySelector(".question-id").textContent = question.id;
-    node.querySelector("h3").textContent = question.text;
-    const scale = node.querySelector(".scale");
-    scale.setAttribute("aria-label", question.text);
-    scaleLabels.forEach((label, index) => {
-      const value = index + 1;
-      const option = document.createElement("label");
-      option.innerHTML = `
-        <input type="radio" name="${question.id}" value="${value}" required>
-        <span><b>${value}</b>${label}</span>
-      `;
-      scale.append(option);
-    });
-    container.append(node);
-  });
+function switchView(view) {
+  $("#homeView").classList.toggle("is-visible", view === "home");
+  $("#surveyView").classList.toggle("is-visible", view === "survey");
+  $("#resultView").classList.toggle("is-visible", view === "result");
+  $("#adminView").classList.toggle("is-visible", view === "admin");
+  if (view === "admin") renderAdmin();
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-function updateProgress() {
-  const answered = questions.filter((question) => {
-    return document.querySelector(`input[name="${question.id}"]:checked`);
-  }).length;
-  const percent = Math.round((answered / questions.length) * 100);
+function showProfileStep() {
+  $("#profileStep").hidden = false;
+  $("#questionStep").hidden = true;
+}
+
+function showQuestionStep() {
+  $("#profileStep").hidden = true;
+  $("#questionStep").hidden = false;
+  renderCurrentQuestion();
+}
+
+function renderCurrentQuestion() {
+  const question = questions[currentQuestionIndex];
+  const savedValue = new FormData($("#surveyForm")).get(question.id);
+  const answeredCount = questions.filter((item) => new FormData($("#surveyForm")).get(item.id)).length;
+  const percent = Math.round((answeredCount / questions.length) * 100);
+
+  $("#questionCount").textContent = `질문 ${currentQuestionIndex + 1} / ${questions.length}`;
+  $("#questionText").textContent = question.text;
   $("#progressText").textContent = `${percent}%`;
   $("#progressBar").style.width = `${percent}%`;
+  $("#prevBtn").disabled = currentQuestionIndex === 0;
+  $("#nextBtn").textContent = currentQuestionIndex === questions.length - 1 ? "결과 보기" : "다음";
+
+  $("#scaleOptions").innerHTML = scaleLabels.map((label, index) => {
+    const value = index + 1;
+    const checked = String(value) === savedValue ? "checked" : "";
+    return `
+      <label class="scale-option">
+        <input type="radio" name="${question.id}" value="${value}" ${checked} required>
+        <span>${label}</span>
+      </label>
+    `;
+  }).join("");
 }
 
 function collectFormData(form) {
@@ -198,8 +213,57 @@ function collectFormData(form) {
   return { profile, answers };
 }
 
+function isProfileValid() {
+  const fields = ["name", "birthdate", "gender", "height", "weight"].map((name) => $(`[name="${name}"]`));
+  const invalid = fields.find((field) => !field.checkValidity());
+  if (invalid) {
+    invalid.reportValidity();
+    return false;
+  }
+  return true;
+}
+
+function goNextQuestion() {
+  const question = questions[currentQuestionIndex];
+  const selected = new FormData($("#surveyForm")).get(question.id);
+  if (!selected) {
+    alert("응답을 선택해주세요.");
+    return;
+  }
+  if (currentQuestionIndex < questions.length - 1) {
+    currentQuestionIndex += 1;
+    renderCurrentQuestion();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    return;
+  }
+  saveCurrentResponse();
+}
+
+function goPrevQuestion() {
+  if (currentQuestionIndex === 0) return;
+  currentQuestionIndex -= 1;
+  renderCurrentQuestion();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function saveCurrentResponse() {
+  const { profile, answers } = collectFormData($("#surveyForm"));
+  const response = {
+    id: makeId(),
+    createdAt: new Date().toISOString(),
+    profile,
+    answers,
+    scores: calculateScores(answers)
+  };
+  const responses = getResponses();
+  responses.push(response);
+  saveResponses(responses);
+  showResult(response);
+  renderAdmin();
+}
+
 function makeScoreCards(scores) {
-  return `<div class="score-grid">${categoryOrder.map((category) => `
+  return categoryOrder.map((category) => `
     <article class="score-card">
       <div class="score-top">
         <h3>${category}</h3>
@@ -207,14 +271,13 @@ function makeScoreCards(scores) {
       </div>
       <p class="description">${scores[category].description}</p>
     </article>
-  `).join("")}</div>`;
+  `).join("");
 }
 
 function showResult(response) {
   $("#resultProfile").textContent = `${response.profile.name} · ${response.profile.gender} · ${response.profile.birthdate} · ${response.profile.height}cm / ${response.profile.weight}kg`;
   $("#finalResultSummary").innerHTML = makeScoreCards(response.scores);
   switchView("result");
-  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function renderAdmin() {
@@ -252,7 +315,7 @@ function renderDetail(response) {
   $("#adminDetail").innerHTML = `
     <div class="section-title">
       <div>
-        <p class="eyebrow">Response Detail</p>
+        <p class="kicker">Response Detail</p>
         <h2>${response.profile.name}</h2>
         <p class="meta-line">${formatDate(response.createdAt)} 저장</p>
       </div>
@@ -265,7 +328,7 @@ function renderDetail(response) {
       ${profileItem("체중", `${response.profile.weight}kg`)}
       ${profileItem("문항", "32개 완료")}
     </div>
-    ${makeScoreCards(response.scores)}
+    <div class="score-grid">${makeScoreCards(response.scores)}</div>
     <h3 style="margin-top:22px">문항별 응답</h3>
     <div class="answer-grid">
       ${questions.map((question) => `
@@ -323,14 +386,6 @@ function formatDate(value) {
   }).format(new Date(value));
 }
 
-function switchView(view) {
-  document.querySelectorAll(".tab").forEach((tab) => tab.classList.toggle("is-active", tab.dataset.view === view));
-  $("#surveyView").classList.toggle("is-visible", view === "survey");
-  $("#resultView").classList.toggle("is-visible", view === "result");
-  $("#adminView").classList.toggle("is-visible", view === "admin");
-  if (view === "admin") renderAdmin();
-}
-
 function exportExcel() {
   const responses = getResponses();
   if (!responses.length) {
@@ -377,37 +432,33 @@ function escapeHtml(value) {
   })[char]);
 }
 
+function resetSurvey() {
+  $("#surveyForm").reset();
+  currentQuestionIndex = 0;
+  showProfileStep();
+}
+
 function bindEvents() {
-  document.querySelectorAll(".tab").forEach((tab) => {
-    tab.addEventListener("click", () => switchView(tab.dataset.view));
+  document.querySelectorAll("[data-view]").forEach((button) => {
+    button.addEventListener("click", () => switchView(button.dataset.view));
   });
-  $("#surveyForm").addEventListener("change", updateProgress);
-  $("#surveyForm").addEventListener("submit", (event) => {
-    event.preventDefault();
-    if (!event.currentTarget.reportValidity()) return;
-    const { profile, answers } = collectFormData(event.currentTarget);
-    const response = {
-      id: makeId(),
-      createdAt: new Date().toISOString(),
-      profile,
-      answers,
-      scores: calculateScores(answers)
-    };
-    const responses = getResponses();
-    responses.push(response);
-    saveResponses(responses);
-    showResult(response);
-    renderAdmin();
-  });
-  $("#resetBtn").addEventListener("click", () => {
-    $("#surveyForm").reset();
-    updateProgress();
-  });
-  $("#newSurveyBtn").addEventListener("click", () => {
-    $("#surveyForm").reset();
-    updateProgress();
+  $("#startSurveyBtn").addEventListener("click", () => {
+    resetSurvey();
     switchView("survey");
+  });
+  $("#profileNextBtn").addEventListener("click", () => {
+    if (!isProfileValid()) return;
+    currentQuestionIndex = 0;
+    showQuestionStep();
     window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+  $("#scaleOptions").addEventListener("change", renderCurrentQuestion);
+  $("#nextBtn").addEventListener("click", goNextQuestion);
+  $("#prevBtn").addEventListener("click", goPrevQuestion);
+  $("#surveyForm").addEventListener("submit", (event) => event.preventDefault());
+  $("#newSurveyBtn").addEventListener("click", () => {
+    resetSurvey();
+    switchView("survey");
   });
   $("#goAdminBtn").addEventListener("click", () => switchView("admin"));
   $("#searchInput").addEventListener("input", renderAdmin);
@@ -421,7 +472,6 @@ function bindEvents() {
   });
 }
 
-renderQuestions();
 bindEvents();
-updateProgress();
+resetSurvey();
 renderAdmin();

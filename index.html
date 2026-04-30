@@ -3,125 +3,172 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>운동성향 설문</title>
+    <title>운동 성향 설문조사</title>
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
-    <header class="topbar">
-      <div>
-        <p class="eyebrow">Exercise Profile Survey</p>
-        <h1>운동성향 설문</h1>
-      </div>
-      <nav class="tabs" aria-label="화면 전환">
-        <button class="tab is-active" data-view="survey" type="button">설문</button>
-        <button class="tab" data-view="admin" type="button">관리자</button>
-      </nav>
+    <header class="app-header">
+      <button class="brand" type="button" data-view="home" aria-label="홈으로 이동">
+        <svg viewBox="0 0 48 48" aria-hidden="true">
+          <path d="M4 27h8l5-18 9 31 6-18h12" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>운동 성향 설문조사</span>
+      </button>
+      <button class="admin-link" type="button" data-view="admin">관리자</button>
     </header>
 
     <main>
-      <section id="surveyView" class="view is-visible">
-        <section class="panel intro-panel">
-          <div>
-            <h2>기본정보</h2>
-            <p>모든 기본정보와 32개 문항 응답을 완료하면 결과가 저장됩니다.</p>
-          </div>
-          <div class="progress-wrap" aria-label="응답 진행률">
-            <div class="progress-meta">
-              <span>진행률</span>
-              <strong id="progressText">0%</strong>
-            </div>
-            <div class="progress-track">
-              <div id="progressBar" class="progress-bar"></div>
-            </div>
-          </div>
+      <section id="homeView" class="view is-visible">
+        <section class="hero">
+          <h1>당신의 운동 유전자를 발견하세요</h1>
+          <p>32개의 과학적 질문을 통해 신체 특성, 운동 능력, 유전적 소질을 분석합니다. 개인 맞춤형 운동 가이드를 받아보세요.</p>
+          <button class="primary cta" id="startSurveyBtn" type="button">설문 시작하기</button>
         </section>
 
-        <form id="surveyForm" class="survey-form">
-          <section class="info-grid" aria-label="기본정보 입력">
-            <label>
-              <span>이름</span>
-              <input name="name" autocomplete="name" required>
-            </label>
-            <label>
-              <span>생년월일</span>
-              <input name="birthdate" type="date" required>
-            </label>
-            <label>
-              <span>성별</span>
-              <select name="gender" required>
-                <option value="">선택</option>
-                <option>남</option>
-                <option>여</option>
-              </select>
-            </label>
-            <label>
-              <span>신장(cm)</span>
-              <input name="height" type="number" min="80" max="250" step="0.1" required>
-            </label>
-            <label>
-              <span>체중(kg)</span>
-              <input name="weight" type="number" min="20" max="300" step="0.1" required>
-            </label>
+        <section class="feature-grid" aria-label="설문 특징">
+          <article class="feature-card">
+            <span class="feature-icon blue">
+              <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 27h8l5-18 9 31 6-18h8" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+            <h2>32개 문항</h2>
+            <p class="sub">과학적으로 설계된 설문</p>
+            <p>신체 특성, 운동 능력, 유전적 소질을 종합적으로 분석하는 정밀한 질문</p>
+          </article>
+          <article class="feature-card">
+            <span class="feature-icon green">
+              <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M10 38h30M14 30V17M24 30V9M34 30V22" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/></svg>
+            </span>
+            <h2>11개 카테고리</h2>
+            <p class="sub">상세한 분석 결과</p>
+            <p>운동성향, 유전, 효율성 등 카테고리별로 상세한 점수와 설명 제공</p>
+          </article>
+          <article class="feature-card">
+            <span class="feature-icon purple">
+              <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 24h8l5-15 8 30 5-15h6" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+            <h2>맞춤 가이드</h2>
+            <p class="sub">개인별 운동 방향</p>
+            <p>당신의 신체 특성에 맞는 최적의 운동 방법과 전략을 제시합니다</p>
+          </article>
+        </section>
+
+        <section class="steps-card">
+          <h2>설문 진행 방식</h2>
+          <div class="steps">
+            <article>
+              <strong>1</strong>
+              <h3>기본 정보 입력</h3>
+              <p>이름, 생년월일, 성별, 신장, 체중을 입력합니다</p>
+            </article>
+            <article>
+              <strong>2</strong>
+              <h3>설문 응답</h3>
+              <p>32개 문항에 5점 척도로 응답합니다</p>
+            </article>
+            <article>
+              <strong>3</strong>
+              <h3>결과 분석</h3>
+              <p>11개 카테고리별 점수를 계산합니다</p>
+            </article>
+            <article>
+              <strong>4</strong>
+              <h3>결과 확인</h3>
+              <p>개인 맞춤형 분석 결과를 확인합니다</p>
+            </article>
+          </div>
+        </section>
+      </section>
+
+      <section id="surveyView" class="view">
+        <form id="surveyForm" class="survey-shell">
+          <section id="profileStep" class="survey-card">
+            <p class="kicker">Step 1</p>
+            <h1>기본 정보를 입력해주세요</h1>
+            <p class="lead">결과 저장과 개인 응답 확인을 위해 필요한 정보입니다.</p>
+            <div class="info-grid">
+              <label><span>이름</span><input name="name" autocomplete="name" required></label>
+              <label><span>생년월일</span><input name="birthdate" type="date" required></label>
+              <label>
+                <span>성별</span>
+                <select name="gender" required>
+                  <option value="">선택</option>
+                  <option>남</option>
+                  <option>여</option>
+                </select>
+              </label>
+              <label><span>신장(cm)</span><input name="height" type="number" min="80" max="250" step="0.1" required></label>
+              <label><span>체중(kg)</span><input name="weight" type="number" min="20" max="300" step="0.1" required></label>
+            </div>
+            <button class="primary full" id="profileNextBtn" type="button">문항 시작하기</button>
           </section>
 
-          <section id="questions" class="questions" aria-label="설문 문항"></section>
-
-          <div class="actions">
-            <button class="secondary" id="resetBtn" type="button">초기화</button>
-            <button class="primary" type="submit">결과 저장</button>
-          </div>
+          <section id="questionStep" class="question-step" hidden>
+            <div class="survey-title">
+              <div>
+                <h1>운동 성향 설문조사</h1>
+                <p id="questionCount">질문 1 / 32</p>
+              </div>
+            </div>
+            <div class="progress-area">
+              <div class="progress-meta">
+                <span>진행률</span>
+                <strong id="progressText">0%</strong>
+              </div>
+              <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
+            </div>
+            <article class="survey-card question-card">
+              <h2 id="questionText"></h2>
+              <div id="scaleOptions" class="scale-list" role="radiogroup" aria-label="응답 선택"></div>
+            </article>
+            <div class="nav-actions">
+              <button class="secondary" id="prevBtn" type="button">이전</button>
+              <button class="primary" id="nextBtn" type="button">다음</button>
+            </div>
+          </section>
         </form>
-
       </section>
 
       <section id="resultView" class="view result-view">
-        <section class="panel result-hero">
-          <div>
-            <p class="eyebrow">Survey Complete</p>
-            <h2>응답 결과</h2>
-            <p id="resultProfile" class="meta-line"></p>
-          </div>
+        <section class="result-hero">
+          <p class="kicker">Survey Complete</p>
+          <h1>분석 결과가 완성되었습니다</h1>
+          <p id="resultProfile" class="lead"></p>
           <div class="result-actions">
             <button class="secondary" id="newSurveyBtn" type="button">새 설문 작성</button>
             <button class="primary" id="goAdminBtn" type="button">관리자에서 보기</button>
           </div>
         </section>
-        <section class="panel result-wide-panel">
-          <div id="finalResultSummary" class="result-summary"></div>
-        </section>
+        <section id="finalResultSummary" class="score-grid"></section>
       </section>
 
       <section id="adminView" class="view">
-        <section class="panel admin-head">
+        <section class="admin-head">
           <div>
-            <p class="eyebrow">Admin</p>
-            <h2>응답 관리</h2>
-            <p>저장된 개인 응답을 확인하고, 통계와 엑셀 파일을 만들 수 있습니다.</p>
+            <p class="kicker">Admin</p>
+            <h1>응답 관리</h1>
+            <p class="lead">저장된 개인 응답과 전체 통계를 확인합니다.</p>
           </div>
           <div class="admin-actions">
             <button class="secondary" id="clearDataBtn" type="button">전체 삭제</button>
             <button class="primary" id="exportBtn" type="button">엑셀 추출</button>
           </div>
         </section>
-
         <section class="admin-grid">
-          <aside class="panel response-list">
+          <aside class="admin-panel">
             <div class="list-head">
-              <h3>응답자</h3>
+              <h2>응답자</h2>
               <input id="searchInput" placeholder="이름 검색" aria-label="이름 검색">
             </div>
             <div id="responseList" class="response-items"></div>
           </aside>
-
-          <section class="panel detail-panel">
+          <section class="admin-panel">
             <div id="adminDetail" class="empty-state">저장된 응답을 선택하면 상세 결과가 표시됩니다.</div>
           </section>
         </section>
-
-        <section class="panel stats-panel">
+        <section class="admin-panel stats-panel">
           <div class="section-title">
             <div>
-              <p class="eyebrow">Statistics</p>
+              <p class="kicker">Statistics</p>
               <h2>전체 통계</h2>
             </div>
             <strong id="totalCount">0명</strong>
@@ -130,16 +177,6 @@
         </section>
       </section>
     </main>
-
-    <template id="questionTemplate">
-      <article class="question-card">
-        <div class="question-copy">
-          <span class="question-id"></span>
-          <h3></h3>
-        </div>
-        <div class="scale" role="radiogroup"></div>
-      </article>
-    </template>
 
     <script src="app.js"></script>
   </body>
