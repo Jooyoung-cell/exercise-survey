@@ -5,8 +5,12 @@ create table if not exists public.survey_responses (
   created_at timestamptz not null default now(),
   profile jsonb not null,
   answers jsonb not null,
-  scores jsonb not null
+  scores jsonb not null,
+  type_profile jsonb
 );
+
+alter table public.survey_responses
+  add column if not exists type_profile jsonb;
 
 alter table public.survey_responses enable row level security;
 

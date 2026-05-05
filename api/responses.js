@@ -12,7 +12,8 @@ module.exports = async function handler(req, res) {
       body: JSON.stringify({
         profile: body.profile,
         answers: body.answers,
-        scores: body.scores
+        scores: body.scores,
+        type_profile: body.typeProfile
       })
     });
     return json(res, 201, { response: created[0] });

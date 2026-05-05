@@ -35,6 +35,7 @@ function fromRow(row) {
     createdAt: row.created_at,
     profile: row.profile,
     answers: row.answers,
-    scores: row.scores
+    scores: row.scores,
+    typeProfile: row.type_profile
   };
 }

@@ -156,12 +156,14 @@ async function saveResponse(response) {
 }
 
 function normalizeResponse(response) {
+  const scores = response.scores;
   return {
     id: response.id,
     createdAt: response.createdAt || response.created_at,
     profile: response.profile,
     answers: response.answers,
-    scores: response.scores
+    scores,
+    typeProfile: response.typeProfile || response.type_profile || calculateTypeProfile(scores)
   };
 }
 
@@ -187,6 +189,44 @@ function calculateScores(answers) {
     };
     return acc;
   }, {});
+}
+
+function getLevel(score) {
+  if (score < 3) return { label: "Low", code: "L" };
+  if (score < 4) return { label: "Moderate", code: "M" };
+  return { label: "High", code: "H" };
+}
+
+function pickHighest(candidates) {
+  return candidates.reduce((best, candidate) => candidate.score > best.score ? candidate : best, candidates[0]);
+}
+
+function calculateTypeProfile(scores) {
+  const chemical = pickHighest([
+    { group: "Chemical", label: "Protein synthesis", code: "P", score: scores["단백질 합성력"].average },
+    { group: "Chemical", label: "Metabolism", code: "M", score: scores["대사량"].average }
+  ]);
+  const chemicalLevel = getLevel(chemical.score);
+  const electrical = pickHighest([
+    { group: "Electrical", label: "Delicate", code: "D", score: scores["운동 적응력"].average },
+    { group: "Electrical", label: "Instant", code: "I", score: scores["협응력"].average }
+  ]);
+  const mechanical = pickHighest([
+    { group: "Mechanical", label: "Slim", code: "S", score: scores["물리성 2"].average },
+    { group: "Mechanical", label: "Muscular", code: "M", score: scores["물리성 1"].average }
+  ]);
+  const muscle = pickHighest([
+    { group: "Muscle", label: "Endurance", code: "E", score: scores["지구력"].average },
+    { group: "Muscle", label: "Power-M", code: "P", score: scores["근력"].average },
+    { group: "Muscle", label: "Power-P", code: "P", score: scores["순발력"].average }
+  ]);
+  const items = [{ ...chemical, level: chemicalLevel }, electrical, mechanical, muscle];
+
+  return {
+    code: `${chemical.code}${chemicalLevel.code}${electrical.code}${mechanical.code}${muscle.code}`,
+    text: `${chemical.label} · ${chemicalLevel.label} / ${electrical.label} / ${mechanical.label} / ${muscle.label}`,
+    items
+  };
 }
 
 function makeId() {
@@ -289,6 +329,7 @@ async function saveCurrentResponse() {
     answers,
     scores: calculateScores(answers)
   };
+  response.typeProfile = calculateTypeProfile(response.scores);
   const saved = await saveResponse(response);
   showResult(saved);
 }
@@ -305,9 +346,28 @@ function makeScoreCards(scores) {
   `).join("");
 }
 
+function makeTypeCard(typeProfile) {
+  return `
+    <section class="type-card">
+      <p class="kicker">Exercise Type</p>
+      <strong class="type-code">${typeProfile.code}</strong>
+      <p class="type-text">${typeProfile.text}</p>
+      <div class="type-breakdown">
+        ${typeProfile.items.map((item) => `
+          <article>
+            <span>${item.group}</span>
+            <strong>${item.label}${item.level ? ` · ${item.level.label}` : ""}</strong>
+            <small>${item.score.toFixed(2)}점</small>
+          </article>
+        `).join("")}
+      </div>
+    </section>
+  `;
+}
+
 function showResult(response) {
   $("#resultProfile").textContent = `${response.profile.name} | ${response.profile.gender} | ${response.profile.birthdate} | ${response.profile.height}cm | ${response.profile.weight}kg`;
-  $("#finalResultSummary").innerHTML = makeScoreCards(response.scores);
+  $("#finalResultSummary").innerHTML = `${makeTypeCard(response.typeProfile || calculateTypeProfile(response.scores))}${makeScoreCards(response.scores)}`;
   switchView("result");
 }
 
@@ -413,7 +473,7 @@ function renderDetail(response) {
       ${profileItem("체중", `${response.profile.weight}kg`)}
       ${profileItem("문항", "32개 완료")}
     </div>
-    <div class="score-grid">${makeScoreCards(response.scores)}</div>
+    <div class="score-grid">${makeTypeCard(response.typeProfile || calculateTypeProfile(response.scores))}${makeScoreCards(response.scores)}</div>
     <h3 style="margin-top:22px">문항별 응답</h3>
     <div class="answer-grid">
       ${questions.map((question) => `
