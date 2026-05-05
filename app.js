@@ -223,7 +223,7 @@ function calculateTypeProfile(scores) {
   const items = [{ ...chemical, level: chemicalLevel }, electrical, mechanical, muscle];
 
   return {
-    code: `${chemical.code}${chemicalLevel.code}${electrical.code}${mechanical.code}${muscle.code}`,
+    code: `${chemical.code}-${chemicalLevel.code}${electrical.code}${mechanical.code}${muscle.code}`,
     text: `${chemical.label} · ${chemicalLevel.label} / ${electrical.label} / ${mechanical.label} / ${muscle.label}`,
     items
   };
